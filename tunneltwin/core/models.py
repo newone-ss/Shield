@@ -13,8 +13,10 @@ never a false PASS or unverified FAIL.
 """
 
 from __future__ import annotations
+
 from enum import Enum
-from typing import Generic, TypeVar, Optional, List, Dict, Any
+from typing import Generic, TypeVar
+
 from pydantic import BaseModel, Field, model_validator
 
 
@@ -22,6 +24,7 @@ class ProvenanceTag(str, Enum):
     """
     Taxonomy of knowledge origin for all facts and protocol attributes.
     """
+
     OBSERVED = "observed"
     PARSED = "parsed"
     INFERRED = "inferred"
@@ -32,7 +35,8 @@ class AssessmentStatus(str, Enum):
     """
     Evaluation outcomes for security and compliance rules.
     """
-    PASS = "PASS"
+
+    PASS = "PASS"  # noqa: S105
     FAIL = "FAIL"
     CANNOT_ASSESS = "CANNOT ASSESS"
 
@@ -44,17 +48,14 @@ class ProvenancedFact(BaseModel, Generic[T]):
     """
     Atomic datum wrapper binding a value to its origin and integrity attributes.
     """
-    value: Optional[T] = None
+
+    value: T | None = None
     tag: ProvenanceTag = ProvenanceTag.UNKNOWN
-    confidence: Optional[float] = Field(
-        default=None,
-        description="Confidence score in [0.0, 1.0]. Mandatory when tag == INFERRED."
+    confidence: float | None = Field(
+        default=None, description="Confidence score in [0.0, 1.0]. Mandatory when tag == INFERRED."
     )
-    source_ref: str = Field(
-        default="",
-        description="Line number, packet index, probe ID, or config section reference."
-    )
-    notes: Optional[str] = None
+    source_ref: str = Field(default="", description="Line number, packet index, probe ID, or config section reference.")
+    notes: str | None = None
 
     @model_validator(mode="after")
     def validate_confidence(self) -> ProvenancedFact[T]:
@@ -67,19 +68,21 @@ class ProvenancedFact(BaseModel, Generic[T]):
         return self
 
     @classmethod
-    def observed(cls, value: T, source_ref: str = "", notes: Optional[str] = None) -> ProvenancedFact[T]:
+    def observed(cls, value: T, source_ref: str = "", notes: str | None = None) -> ProvenancedFact[T]:
         return cls(value=value, tag=ProvenanceTag.OBSERVED, confidence=1.0, source_ref=source_ref, notes=notes)
 
     @classmethod
-    def parsed(cls, value: T, source_ref: str = "", notes: Optional[str] = None) -> ProvenancedFact[T]:
+    def parsed(cls, value: T, source_ref: str = "", notes: str | None = None) -> ProvenancedFact[T]:
         return cls(value=value, tag=ProvenanceTag.PARSED, confidence=1.0, source_ref=source_ref, notes=notes)
 
     @classmethod
-    def inferred(cls, value: T, confidence: float, source_ref: str = "", notes: Optional[str] = None) -> ProvenancedFact[T]:
+    def inferred(
+        cls, value: T, confidence: float, source_ref: str = "", notes: str | None = None
+    ) -> ProvenancedFact[T]:
         return cls(value=value, tag=ProvenanceTag.INFERRED, confidence=confidence, source_ref=source_ref, notes=notes)
 
     @classmethod
-    def unknown(cls, source_ref: str = "", notes: Optional[str] = None) -> ProvenancedFact[T]:
+    def unknown(cls, source_ref: str = "", notes: str | None = None) -> ProvenancedFact[T]:
         return cls(value=None, tag=ProvenanceTag.UNKNOWN, confidence=None, source_ref=source_ref, notes=notes)
 
     def is_known(self) -> bool:
@@ -93,16 +96,16 @@ class IKEVersion(str, Enum):
 
 
 class DiffieHellmanGroup(str, Enum):
-    MODP_768 = "modp768"       # DH Group 1 (Insecure)
-    MODP_1024 = "modp1024"     # DH Group 2 (Insecure / Deprecated)
-    MODP_1536 = "modp1536"     # DH Group 5 (Deprecated)
-    MODP_2048 = "modp2048"     # DH Group 14 (Minimum acceptable legacy)
-    MODP_3072 = "modp3072"     # DH Group 15 (Acceptable)
-    MODP_4096 = "modp4096"     # DH Group 16 (High security)
-    ECP_256 = "ecp256"         # DH Group 19 (NIST P-256)
-    ECP_384 = "ecp384"         # DH Group 20 (NIST P-384 / CNSA)
-    ECP_521 = "ecp521"         # DH Group 21 (NIST P-521)
-    CURVE25519 = "curve25519"   # DH Group 31 (RFC 8031)
+    MODP_768 = "modp768"  # DH Group 1 (Insecure)
+    MODP_1024 = "modp1024"  # DH Group 2 (Insecure / Deprecated)
+    MODP_1536 = "modp1536"  # DH Group 5 (Deprecated)
+    MODP_2048 = "modp2048"  # DH Group 14 (Minimum acceptable legacy)
+    MODP_3072 = "modp3072"  # DH Group 15 (Acceptable)
+    MODP_4096 = "modp4096"  # DH Group 16 (High security)
+    ECP_256 = "ecp256"  # DH Group 19 (NIST P-256)
+    ECP_384 = "ecp384"  # DH Group 20 (NIST P-384 / CNSA)
+    ECP_521 = "ecp521"  # DH Group 21 (NIST P-521)
+    CURVE25519 = "curve25519"  # DH Group 31 (RFC 8031)
     UNKNOWN = "UNKNOWN"
 
 
@@ -123,7 +126,7 @@ class IntegrityAlgorithm(str, Enum):
     SHA256 = "sha256"
     SHA384 = "sha384"
     SHA512 = "sha512"
-    NONE = "none"              # For AEAD ciphers like AES-GCM
+    NONE = "none"  # For AEAD ciphers like AES-GCM
     UNKNOWN = "UNKNOWN"
 
 
@@ -131,6 +134,7 @@ class NormalizedProposal(BaseModel):
     """
     Representation of an individual crypto proposal (Phase 1 or Phase 2).
     """
+
     cipher: ProvenancedFact[str] = Field(default_factory=ProvenancedFact.unknown)
     integrity: ProvenancedFact[str] = Field(default_factory=ProvenancedFact.unknown)
     dh_group: ProvenancedFact[str] = Field(default_factory=ProvenancedFact.unknown)
@@ -143,13 +147,14 @@ class NormalizedConnection(BaseModel):
     Vendor-agnostic canonical representation of an IPsec VPN peer/tunnel.
     Every attribute is wrapped in a ProvenancedFact.
     """
+
     connection_name: ProvenancedFact[str] = Field(default_factory=ProvenancedFact.unknown)
     ike_version: ProvenancedFact[str] = Field(default_factory=ProvenancedFact.unknown)
     local_endpoint: ProvenancedFact[str] = Field(default_factory=ProvenancedFact.unknown)
     remote_endpoint: ProvenancedFact[str] = Field(default_factory=ProvenancedFact.unknown)
     auth_method: ProvenancedFact[str] = Field(default_factory=ProvenancedFact.unknown)
-    phase1_proposals: List[NormalizedProposal] = Field(default_factory=list)
-    phase2_proposals: List[NormalizedProposal] = Field(default_factory=list)
+    phase1_proposals: list[NormalizedProposal] = Field(default_factory=list)
+    phase2_proposals: list[NormalizedProposal] = Field(default_factory=list)
     pfs_group: ProvenancedFact[str] = Field(default_factory=ProvenancedFact.unknown)
     phase1_lifetime: ProvenancedFact[int] = Field(default_factory=ProvenancedFact.unknown)
     phase2_lifetime: ProvenancedFact[int] = Field(default_factory=ProvenancedFact.unknown)

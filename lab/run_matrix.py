@@ -13,7 +13,7 @@ def run_phase0_matrix() -> bool:
     script_path = Path(__file__).parent / "run_matrix.sh"
     cmd = ["bash", str(script_path)]
     print(f"[TunnelTwin] Executing matrix runner: {' '.join(cmd)}")
-    result = subprocess.run(cmd, capture_output=False)
+    result = subprocess.run(cmd, capture_output=False)  # noqa: S603
     return result.returncode == 0
 
 

@@ -3,15 +3,15 @@ tunneltwin.core module — foundational schemas, provenance types, and error hie
 """
 
 from tunneltwin.core.models import (
-    ProvenanceTag,
     AssessmentStatus,
-    ProvenancedFact,
-    IKEVersion,
-    DiffieHellmanGroup,
     CipherAlgorithm,
+    DiffieHellmanGroup,
+    IKEVersion,
     IntegrityAlgorithm,
+    NormalizedConnection,
     NormalizedProposal,
-    NormalizedConnection
+    ProvenancedFact,
+    ProvenanceTag,
 )
 
 __all__ = [
@@ -23,5 +23,5 @@ __all__ = [
     "CipherAlgorithm",
     "IntegrityAlgorithm",
     "NormalizedProposal",
-    "NormalizedConnection"
+    "NormalizedConnection",
 ]

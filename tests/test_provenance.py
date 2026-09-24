@@ -3,12 +3,11 @@ Unit tests for the TunnelTwin Four-Tier Provenance Tracking System.
 """
 
 import pytest
+
 from tunneltwin.core.models import (
-    ProvenanceTag,
-    AssessmentStatus,
+    NormalizedConnection,
     ProvenancedFact,
-    NormalizedProposal,
-    NormalizedConnection
+    ProvenanceTag,
 )
 
 
@@ -31,7 +30,9 @@ def test_parsed_fact():
 
 
 def test_inferred_fact_valid():
-    fact = ProvenancedFact.inferred("modp1024", confidence=0.85, source_ref="ml_heuristic_v1", notes="Default Cisco IOS 12.x")
+    fact = ProvenancedFact.inferred(
+        "modp1024", confidence=0.85, source_ref="ml_heuristic_v1", notes="Default Cisco IOS 12.x"
+    )
     assert fact.tag == ProvenanceTag.INFERRED
     assert fact.value == "modp1024"
     assert fact.confidence == 0.85
