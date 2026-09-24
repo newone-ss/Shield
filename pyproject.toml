@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tunneltwin"
+version = "0.1.0"
+description = "AI-Powered IPsec VPN Protocol Analyzer and Security Assessment Framework"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+    { name = "TunnelTwin Engineering Team" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+    "Topic :: Security :: Cryptography",
+    "Topic :: System :: Networking"
+]
+dependencies = [
+    "fastapi>=0.100.0",
+    "uvicorn>=0.22.0",
+    "pydantic>=2.0.0",
+    "scapy>=2.5.0",
+    "rich>=13.0.0",
+    "pyyaml>=6.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0"
+]
+
+[project.scripts]
+tunneltwin = "tunneltwin.cli.main:main"

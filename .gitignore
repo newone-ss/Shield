@@ -1,0 +1,40 @@
+# Explicitly excluded from repository per requirement
+DECISIONS.md
+decisions.md
+Decisions.md
+
+# Python cache & build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Testing & Environment
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+env/
+venv/
+
+# Lab runtime temporary files
+*.log
+*.pid
+*.vici
+*.ctl
