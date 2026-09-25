@@ -11,6 +11,8 @@
 | **FEAT-001** | Linux Network Namespace Isolated Lab Substrate | Phase 0 | **COMPLETED** | Verified (PASS) |
 | **FEAT-002** | Multi-Profile strongSwan Configuration Engine | Phase 0 | **COMPLETED** | Verified (PASS) |
 | **FEAT-003** | Core Package Scaffolding & Provenance Data Model | Phase 0 | **COMPLETED** | Verified (PASS) |
+| **FEAT-004** | Pure-Python Binary IKEv1/IKEv2 Codec & Elimination Proposals | Phase 1 | **COMPLETED** | Verified (PASS) |
+| **FEAT-005** | Consent-Gated UDP Prober Engine with Elimination Scanning | Phase 1 | **COMPLETED** | Verified (PASS) |
 
 ---
 
@@ -92,3 +94,46 @@
 
 ### 2. Verification Log
 - Full test suite in `tests/test_provenance.py` and `tests/test_phase0_matrix.py` passed with 7/7 tests passing in `pytest`.
+
+---
+
+## FEAT-004: Pure-Python Binary IKEv1/IKEv2 Codec & Elimination Proposals
+
+### 1. Scope & Objectives
+- Implement RFC-accurate IKEv1 and IKEv2 binary packet encoders/decoders without external packet manipulation libraries (Scapy).
+- Complete IANA registry constants for encryption algorithms, integrity algorithms, PRFs, DH groups, payload types, exchange types, and notification messages.
+- Support IKEv2 `IKE_SA_INIT` and IKEv1 `Main Mode` packet synthesis and parsing.
+- Support elimination transform generator to probe cipher suites individually with exclusion lists.
+
+### 2. Implementation Approach
+- Authored `tunneltwin/ike/constants.py` with standard IANA protocol numbers and human-readable reverse lookups.
+- Authored `tunneltwin/ike/codec.py` with pure `struct.pack`/`unpack` parsing, safe bounds checking, and custom `IKEParseError`.
+- Authored `tunneltwin/ike/transforms.py` generating standard audit suites (NIST SP 800-77r1, CNSA 2.0, legacy, and aggressive sets) with exclusion mechanics.
+
+### 3. Verification Log
+- Authored 17 round-trip unit tests in `tests/test_ike_codec.py`:
+  - IKE header build/parse
+  - SA, KE, Nonce, Notify payload encoding/decoding
+  - Non-ESP marker stripping for NAT-T (UDP 4500)
+  - Cookie and Invalid KE response parsing
+  - Malformed packet error handling
+- All 17 tests passed with zero failures.
+
+---
+
+## FEAT-005: Consent-Gated UDP Prober Engine with Elimination Scanning
+
+### 1. Scope & Objectives
+- Implement double-barrier target allowlisting (IP/CIDR matching AND explicit `consent_verified=True` flag) per ADR-0003.
+- Build asynchronous UDP client with exponential backoff, jitter, RFC 7296 cookie retry, and rate limiting.
+- Tag all scan results with strict `OBSERVED` provenance.
+
+### 2. Implementation Approach
+- Authored `tunneltwin/probe/allowlist.py` (`TargetAllowlist` with subnet containment and ownership tracking).
+- Authored `tunneltwin/probe/result.py` (`GatewayScanResult`, `AcceptedTransform`, `IKEv1AcceptedTransform`, and `ScanStatus`).
+- Authored `tunneltwin/probe/scanner.py` (`scan_gateway`, `_probe_ikev2_elimination`, `_probe_ikev1_elimination`).
+
+### 3. Verification Log
+- 11 unit tests for allowlist enforcement in `tests/test_probe_allowlist.py` (explicit consent, unverified IP, CIDR boundaries).
+- 10 unit tests for scanner logic in `tests/test_probe_scanner.py` (unauthorized target blocking, retry backoff calculation, duration tracking).
+- Total probe engine verification: 21 tests passed cleanly.

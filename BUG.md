@@ -11,6 +11,8 @@
 | **BUG-001** | strongSwan.conf filelog syntax error on raw path | Low | Closed | Phase 0 | Phase 0 |
 | **BUG-002** | /var/run/charon.pid collision across network namespaces | High | Closed | Phase 0 | Phase 0 |
 | **BUG-003** | Python subprocess.run hang due to unclosed child pipes | Medium | Closed | Phase 0 | Phase 0 |
+| **BUG-004** | Mypy loop variable reuse type inference conflict in result.py | Low | Closed | Phase 1 | Phase 1 |
+| **BUG-005** | Windows monotonic clock resolution causing timer test flaky failure | Low | Closed | Phase 1 | Phase 1 |
 
 ---
 
@@ -76,3 +78,46 @@
 
 ### 4. Verification Proof
 - Pytest completed in 12.52 seconds with all 7 tests passing.
+
+---
+
+## BUG-004: Mypy loop variable reuse type inference conflict in result.py
+
+### 1. Discovery & Symptoms
+- **How discovered**: Running `mypy tunneltwin --ignore-missing-imports` during Phase 1 verification.
+- **Observed error**:
+  ```text
+  tunneltwin/probe/result.py:205: error: Incompatible types in assignment (expression has type "IKEv1AcceptedTransform", variable has type "AcceptedTransform")  [assignment]
+  ```
+- **Expected behavior**: Static type checker cleanly accepts iterations over two independent collections.
+
+### 2. Diagnosis & Root Cause
+- In `result.py`, loop variable `t` was used first to iterate over `self.accepted_transforms` (`list[AcceptedTransform]`) and then subsequently over `self.ikev1_accepted` (`list[IKEv1AcceptedTransform]`). Mypy retains the type narrowing of `t` from the first loop within the same method scope, flagging the second loop assignment as an incompatible type assignment.
+
+### 3. Attempted Fixes
+- *Attempt 1 (Success)*: Renamed the secondary loop variable to `v1t` (`for v1t in self.ikev1_accepted:`), completely isolating the variable scope and type annotations.
+
+### 4. Verification Proof
+- `mypy tunneltwin --ignore-missing-imports` passed with zero errors across all 19 source files.
+
+---
+
+## BUG-005: Windows monotonic clock resolution causing timer test flaky failure
+
+### 1. Discovery & Symptoms
+- **How discovered**: Running `pytest -v tests/test_probe_scanner.py` on host Windows.
+- **Observed error**:
+  ```text
+  AssertionError: assert 0.0 > 0.0
+  start_time = 861532.265, end_time = 861532.265, duration_ms = 0.0
+  ```
+- **Expected behavior**: Timer tracking measures elapsed scan duration > 0 ms.
+
+### 2. Diagnosis & Root Cause
+- On Windows, the system timer interrupt granularity for `time.monotonic()` can be ~15.6ms. A fast unit test sleeping for only 10ms (`time.sleep(0.01)`) frequently completed within the same timer tick window, resulting in `end_time == start_time` and `duration_ms == 0.0`.
+
+### 3. Attempted Fixes
+- *Attempt 1 (Success)*: Increased test sleep to 50ms (`time.sleep(0.05)`) and asserted `duration_ms >= 1.0` to safely exceed the 15.6ms timer resolution on Windows.
+
+### 4. Verification Proof
+- `pytest -v tests/test_probe_scanner.py` passed consistently across runs with `duration_ms` measuring ~50.2ms.
