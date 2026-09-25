@@ -1,4 +1,4 @@
-# TunnelTwin (NTRO Problem Statement 26160 — SIH 2026)
+# Valence_IPSec (NTRO Problem Statement 26160 — SIH 2026)
 ### AI-Powered IPsec VPN Protocol Analyzer & Security Assessment Framework
 
 TunnelTwin is a next-generation protocol assessment and automated hardening framework designed for enterprise, defense, and mission-critical IPsec VPN deployments.
